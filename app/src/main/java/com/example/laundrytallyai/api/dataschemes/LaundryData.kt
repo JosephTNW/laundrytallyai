@@ -7,5 +7,7 @@ data class LaundryData(
     val launderer_name: String,
     val launderer_pic: String,
     val laundry_days: Int?,
-    val status: String
+    val status: String,
+    val launderer: LaundererData,
+    val clothes: List<ClothesData>
 )

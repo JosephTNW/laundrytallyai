@@ -1,6 +1,7 @@
 package com.example.laundrytallyai.pages.launderers
 
 import android.util.Log
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -54,8 +55,12 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 @Composable
-fun LaundererScreen(navController: NavController, paddingValues: PaddingValues? = null) {
-    val viewModel: LaundererViewModel = hiltViewModel()
+fun LaundererScreen(
+    viewModel: LaundererViewModel,
+    navController: NavController,
+    paddingValues: PaddingValues? = null
+) {
+//    val viewModel: LaundererViewModel = hiltViewModel()
     val dataState by viewModel.dataState.collectAsState()
     var searchText by remember { mutableStateOf("") }
 
@@ -90,40 +95,45 @@ fun LaundererScreen(navController: NavController, paddingValues: PaddingValues? 
         when (val state = dataState) {
             is LaundererDataState.Loading -> RotatingArcLoadingAnimation()
             is LaundererDataState.Success -> {
-                LaundererGrid(laundererItems = state.data)
+                LaundererGrid(laundererItems = state.data, viewModel, navController)
             }
 
             is LaundererDataState.Error -> {
-                Text(text = "Error: ${state.message}")
+                if (state.message == "401" || state.message == "403") {
+                    Text(text = "Error: ${state.message}")
+                    viewModel.deleteToken()
+                    navController.navigate("login")
+                } else {
+                    Text(text = "Error: ${state.message}")
+                }
             }
         }
     }
 }
 
 @Composable
-fun LaundererGrid(laundererItems: List<LaundererData>) {
+fun LaundererGrid(
+    laundererItems: List<LaundererData>,
+    viewModel: LaundererViewModel,
+    navController: NavController
+) {
     LazyVerticalGrid(
         columns = GridCells.Fixed(2),
         contentPadding = PaddingValues(8.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        items(laundererItems) {laundererData ->
+        items(laundererItems) { laundererData ->
             LaundererCard(
                 imageUrl = BASE_URL + laundererData.launderer_pic,
                 name = laundererData.name,
                 address = laundererData.address.split(" ").take(2).joinToString(" "),
                 has_deliv = laundererData.has_delivery,
-                has_whatsapp = laundererData.has_whatsapp
-                )
-        }
-        items(5) {
-            LaundererCard(
-                imageUrl = BASE_URL + "/launderers/launderer1.jpg",
-                name = "Launderer Name",
-                address = "Address",
-                has_deliv = true,
-                has_whatsapp = false
+                has_whatsapp = laundererData.has_whatsapp,
+                modifier = Modifier.clickable {
+                    viewModel.setSelectedLaunderer(laundererData)
+                    navController.navigate("laundererDetail")
+                }
             )
         }
     }
@@ -135,10 +145,11 @@ fun LaundererCard(
     name: String,
     address: String,
     has_deliv: Boolean,
-    has_whatsapp: Boolean
+    has_whatsapp: Boolean,
+    modifier: Modifier
 ) {
     Card(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .aspectRatio(1f), // Make it square
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),

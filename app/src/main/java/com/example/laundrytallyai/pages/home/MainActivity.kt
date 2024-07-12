@@ -19,6 +19,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -28,10 +29,12 @@ import com.example.laundrytallyai.navigation.Screen
 import com.example.laundrytallyai.pages.auth.LoginScreen
 import com.example.laundrytallyai.pages.auth.RegisterScreen
 import com.example.laundrytallyai.pages.clothes.CameraServerScreen
-import com.example.laundrytallyai.pages.clothes.CameraXScreen
 import com.example.laundrytallyai.pages.clothes.ClothesScreen
 import com.example.laundrytallyai.pages.clothes.SelectMediaScreen
+import com.example.laundrytallyai.pages.launderers.LaundererDetailScreen
 import com.example.laundrytallyai.pages.launderers.LaundererScreen
+import com.example.laundrytallyai.pages.launderers.LaundererViewModel
+import com.example.laundrytallyai.pages.laundries.CreateLaundryScreen
 import com.example.laundrytallyai.pages.laundries.LaundryScreen
 import com.example.laundrytallyai.pages.settings.SettingsScreen
 import com.example.laundrytallyai.ui.theme.LaundryTallyAITheme
@@ -76,9 +79,10 @@ class MainActivity : ComponentActivity() {
                             }
                         }
                     ) {
+                        val laundererViewModel: LaundererViewModel = hiltViewModel()
                         NavHost(
                             navController = navController,
-                            startDestination = Screen.Launderer.route,
+                            startDestination = Screen.Home.route,
                             modifier = Modifier.padding(it)
                         ) {
                             composable(Screen.Login.route) {
@@ -102,10 +106,22 @@ class MainActivity : ComponentActivity() {
                                 LaundryScreen(navController)
                                 showBottomBar = true
                             }
-                            animatedComposable(Screen.Launderer.route) {
-                                LaundererScreen(navController)
+
+                            composable(Screen.CreateLaundry.route) {
+                                CreateLaundryScreen(navController)
                                 showBottomBar = true
                             }
+
+                            animatedComposable(Screen.Launderer.route) {
+                                LaundererScreen(laundererViewModel, navController)
+                                showBottomBar = true
+                            }
+
+                            composable(Screen.LaundererDetail.route) {
+                                LaundererDetailScreen(laundererViewModel, navController)
+                                showBottomBar = true
+                            }
+
                             animatedComposable(Screen.Settings.route) {
                                 SettingsScreen(navController)
                                 showBottomBar = true

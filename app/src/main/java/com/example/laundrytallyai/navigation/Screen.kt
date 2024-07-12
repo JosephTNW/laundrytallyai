@@ -17,9 +17,11 @@ sealed class Screen(val route: String, val icon: @Composable (() -> ImageVector)
     object Home : Screen("home", {Icons.Filled.Home})
     object Clothes : Screen("clothes", {ImageVector.vectorResource(R.drawable.t_shirt)})
     object Launderer : Screen("launderer", {ImageVector.vectorResource(R.drawable.baseline_local_laundry_service_24)})
+    object LaundererDetail: Screen("laundererDetail", {ImageVector.vectorResource(R.drawable.baseline_local_laundry_service_24)})
     object Laundry : Screen("laundry", {ImageVector.vectorResource(R.drawable.laundry_basket_24)})
     object Settings : Screen("settings", {Icons.Filled.Settings})
     object SelectMedia : Screen("select-media", {Icons.Filled.AddCircle})
     object CameraPreview : Screen("camera-preview", {Icons.Filled.Face})
+    object CreateLaundry : Screen("create-laundry", {ImageVector.vectorResource(id = R.drawable.laundry_basket_24)})
 
 }
