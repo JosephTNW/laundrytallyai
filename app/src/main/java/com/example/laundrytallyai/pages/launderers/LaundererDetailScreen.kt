@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
@@ -23,13 +22,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.zIndex
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.laundrytallyai.api.RetrofitClient.BASE_URL
 import com.example.laundrytallyai.components.PageTitle
-import com.example.laundrytallyai.utils.dateFormatter
+import com.example.laundrytallyai.utils.dateFormatterDMY
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -44,7 +43,7 @@ fun LaundererDetailScreen(viewModel: LaundererViewModel, navController: NavContr
                 AsyncImage(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(200.dp),
+                        .height(300.dp),
                     model = BASE_URL + data.launderer_pic,
                     contentDescription = "Launderer Picture",
                     contentScale = ContentScale.FillWidth
@@ -72,12 +71,13 @@ fun LaundererDetailScreen(viewModel: LaundererViewModel, navController: NavContr
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(16.dp)
+                    .padding(start = 16.dp, end = 16.dp)
                     .verticalScroll(rememberScrollState())
             ) {
-
                 Spacer(modifier = Modifier.height(16.dp))
                 Text("Launderer Profile", style = MaterialTheme.typography.headlineSmall)
+                Spacer(modifier = Modifier.height(8.dp))
+
                 Text(
                     data.desc,
                     style = MaterialTheme.typography.bodyMedium
@@ -85,14 +85,25 @@ fun LaundererDetailScreen(viewModel: LaundererViewModel, navController: NavContr
                 Spacer(modifier = Modifier.height(16.dp))
 
                 InfoRow(section = "Address", value = data.address)
+                Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = if (data.has_delivery) "Has Delivery" else "No Delivery"
+                    text = if (data.has_delivery) "Has Delivery" else "No Delivery",
+                    style = MaterialTheme.typography.bodyMedium
                 )
+                Spacer(modifier = Modifier.height(16.dp))
+
                 InfoRow(section = "Phone", value = data.phone_num)
+                Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = if (data.has_whatsapp) "Has WhatsApp" else "No WhatsApp"
+                    text = if (data.has_whatsapp) "Has WhatsApp" else "No WhatsApp",
+                    style = MaterialTheme.typography.bodyMedium
                 )
-                Text(text = "Inputted Since: ${dateFormatter(data.inputted_at)}")
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Text(
+                    text = "Inputted Since: ${dateFormatterDMY(data.inputted_at)}",
+                    style = MaterialTheme.typography.bodySmall
+                )
             }
         }
     }
@@ -100,8 +111,8 @@ fun LaundererDetailScreen(viewModel: LaundererViewModel, navController: NavContr
 
 @Composable
 fun InfoRow(section: String, value: String) {
-    Column {
-        Text("$section -", style = MaterialTheme.typography.bodyMedium)
-        Text(value, style = MaterialTheme.typography.bodyMedium)
+    Row {
+        Text("$section -", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
+        Text(value, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
     }
 }

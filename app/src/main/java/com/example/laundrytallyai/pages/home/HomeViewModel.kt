@@ -35,6 +35,7 @@ class HomeViewModel @Inject constructor(
                 val response = RetrofitClient.instance.getHomeData(token)
                 if (response.isSuccessful) {
                     val homeData = response.body() ?: throw(Exception("No data found"))
+                    saveUsername(homeData.user)
                     _dataState.value = HomeDataState.Success(homeData)
                 } else {
                     _dataState.value = HomeDataState.Error(parseError(response)["code"] ?: "Unknown error")
@@ -51,5 +52,9 @@ class HomeViewModel @Inject constructor(
 
     fun deleteToken() {
         sharedPreferences.edit().remove("token").apply()
+    }
+
+    private fun saveUsername(username: String) {
+        sharedPreferences.edit().putString("username", username).apply()
     }
 }

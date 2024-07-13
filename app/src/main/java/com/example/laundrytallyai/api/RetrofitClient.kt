@@ -6,7 +6,7 @@ object RetrofitClient {
     var BASE_URL = if (DeviceUtils.isEmulator()) {
         "http://10.0.2.2:5000"
     } else {
-        "https://64ec-114-79-4-87.ngrok-free.app"
+        "https://ac30-111-94-188-102.ngrok-free.app"
     }
 
     val instance: ApiService by lazy {

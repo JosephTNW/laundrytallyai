@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -39,6 +40,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
@@ -49,6 +51,7 @@ import com.example.laundrytallyai.api.dataschemes.LaundererData
 import com.example.laundrytallyai.api.datastates.LaundererDataState
 import com.example.laundrytallyai.components.PageTitle
 import com.example.laundrytallyai.components.SearchBar
+import com.example.laundrytallyai.navigation.Screen
 import com.example.laundrytallyai.utils.RotatingArcLoadingAnimation
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.isActive
@@ -60,7 +63,6 @@ fun LaundererScreen(
     navController: NavController,
     paddingValues: PaddingValues? = null
 ) {
-//    val viewModel: LaundererViewModel = hiltViewModel()
     val dataState by viewModel.dataState.collectAsState()
     var searchText by remember { mutableStateOf("") }
 
@@ -132,7 +134,7 @@ fun LaundererGrid(
                 has_whatsapp = laundererData.has_whatsapp,
                 modifier = Modifier.clickable {
                     viewModel.setSelectedLaunderer(laundererData)
-                    navController.navigate("laundererDetail")
+                    navController.navigate(Screen.LaundererDetail.route)
                 }
             )
         }
@@ -179,7 +181,8 @@ fun LaundererCard(
             ) {
                 Text(
                     text = name,
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = MaterialTheme.typography.bodySmall,
+                    fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary
                 )
                 Text(
@@ -194,13 +197,13 @@ fun LaundererCard(
                     Icon(
                         imageVector = Icons.Default.Call,
                         contentDescription = "Cross",
-                        tint = if (has_whatsapp) Color.Green else Color.Red
+                        tint = if (has_whatsapp) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Icon(
                         imageVector = Icons.Default.Send,
                         contentDescription = "Cross",
-                        tint = if (has_deliv) Color.Green else Color.Red
+                        tint = if (has_deliv) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
                     )
                 }
             }

@@ -14,35 +14,42 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.example.laundrytallyai.components.BottomNavigationBar
 import com.example.laundrytallyai.components.animatedComposable
 import com.example.laundrytallyai.navigation.Screen
 import com.example.laundrytallyai.pages.auth.LoginScreen
 import com.example.laundrytallyai.pages.auth.RegisterScreen
 import com.example.laundrytallyai.pages.clothes.CameraServerScreen
+import com.example.laundrytallyai.pages.clothes.ClothesDetailScreen
 import com.example.laundrytallyai.pages.clothes.ClothesScreen
+import com.example.laundrytallyai.pages.clothes.ClothesViewModel
 import com.example.laundrytallyai.pages.clothes.SelectMediaScreen
 import com.example.laundrytallyai.pages.launderers.LaundererDetailScreen
 import com.example.laundrytallyai.pages.launderers.LaundererScreen
 import com.example.laundrytallyai.pages.launderers.LaundererViewModel
 import com.example.laundrytallyai.pages.laundries.CreateLaundryScreen
+import com.example.laundrytallyai.pages.laundries.LaundryDetailScreen
 import com.example.laundrytallyai.pages.laundries.LaundryScreen
+import com.example.laundrytallyai.pages.laundries.LaundryViewModel
 import com.example.laundrytallyai.pages.settings.SettingsScreen
 import com.example.laundrytallyai.ui.theme.LaundryTallyAITheme
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-    @RequiresApi(Build.VERSION_CODES.O)
+    @RequiresApi(Build.VERSION_CODES.P)
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -61,7 +68,7 @@ class MainActivity : ComponentActivity() {
                         Screen.Laundry,
                         Screen.Settings
                     )
-                    var selectedItem by remember { mutableStateOf(0) }
+                    var selectedItem by remember { mutableIntStateOf(0) }
                     var showBottomBar by remember { mutableStateOf(false) }
                     val context = LocalContext.current
                     val cameraController = remember { LifecycleCameraController(context) }
@@ -80,6 +87,9 @@ class MainActivity : ComponentActivity() {
                         }
                     ) {
                         val laundererViewModel: LaundererViewModel = hiltViewModel()
+                        val clothesViewModel: ClothesViewModel = hiltViewModel()
+                        val laundryViewModel: LaundryViewModel = hiltViewModel()
+
                         NavHost(
                             navController = navController,
                             startDestination = Screen.Home.route,
@@ -99,16 +109,41 @@ class MainActivity : ComponentActivity() {
                                 showBottomBar = true
                             }
                             animatedComposable(Screen.Clothes.route) {
-                                ClothesScreen(navController)
-                                showBottomBar = true
-                            }
-                            animatedComposable(Screen.Laundry.route) {
-                                LaundryScreen(navController)
+                                ClothesScreen(clothesViewModel, navController)
                                 showBottomBar = true
                             }
 
-                            composable(Screen.CreateLaundry.route) {
-                                CreateLaundryScreen(navController)
+                            composable(Screen.ClothesDetail.route) {
+                                ClothesDetailScreen(clothesViewModel, navController)
+                                showBottomBar = true
+                            }
+
+                            animatedComposable(Screen.Laundry.route) {
+                                LaundryScreen(laundryViewModel, navController)
+                                showBottomBar = true
+                            }
+
+                            composable(Screen.LaundryDetail.route) {
+                                LaundryDetailScreen(
+                                    laundryViewModel,
+                                    clothesViewModel,
+                                    laundererViewModel,
+                                    navController
+                                )
+                                showBottomBar = true
+                            }
+
+                            composable(
+                                Screen.CreateLaundry.route,
+                                arguments = listOf(navArgument("launderer_id") {
+                                    type = NavType.StringType
+                                })
+                            ) { backStackEntry ->
+                                CreateLaundryScreen(
+                                    navController,
+                                    laundererId = backStackEntry.arguments?.getString("launderer_id")
+                                        ?: ""
+                                )
                                 showBottomBar = true
                             }
 

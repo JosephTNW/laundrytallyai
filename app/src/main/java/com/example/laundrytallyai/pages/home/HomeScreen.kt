@@ -1,7 +1,6 @@
 package com.example.laundrytallyai.pages.home
 
 import android.os.Build
-import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
@@ -35,7 +34,7 @@ import com.example.laundrytallyai.components.BackgroundedItem
 import com.example.laundrytallyai.components.DetachedItem
 import com.example.laundrytallyai.components.PageTitle
 import com.example.laundrytallyai.utils.RotatingArcLoadingAnimation
-import com.example.laundrytallyai.utils.dateFormatter
+import com.example.laundrytallyai.utils.dateFormatterDMY
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -54,6 +53,7 @@ fun HomeScreen(navController: NavController, paddingValues: PaddingValues? = nul
     when (val state = dataState) {
         is HomeDataState.Loading -> RotatingArcLoadingAnimation()
         is HomeDataState.Success -> {
+//            Text(text = state.data.toString())
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
@@ -78,40 +78,50 @@ fun HomeScreen(navController: NavController, paddingValues: PaddingValues? = nul
                         )
                     }
                     PageTitle(title = "Recent Activities")
-                    HorizontalListSection(
-                        title = "Clothes",
-                        items = state.data.clothes,
-                        content = { clothes ->
-                            DetachedItem(
-                                imageUrl = BASE_URL + clothes.cloth_pic,
-                                primaryText = clothes.type,
-                                secondaryText = clothes.color
-                            )
-                        }
-                    )
-                    HorizontalListSection(
-                        title = "Launderers",
-                        items = state.data.launderers,
-                        content = { launderer ->
-                            DetachedItem(
-                                imageUrl = BASE_URL + launderer.launderer_pic,
-                                primaryText = launderer.name.replace("laundry", "", true),
-                                secondaryText = launderer.address.split(" ").first()
-                                    .replace(",", "")
-                            )
-                        }
-                    )
-                    HorizontalListSection(
-                        title = "Laundries",
-                        items = state.data.laundries
-                    ) {
-                        BackgroundedItem(
-                            imageUrl = BASE_URL + it.launderer_pic,
-                            primaryText = it.launderer_name.replace("laundry", "", true),
-                            secondaryText = dateFormatter(it.laundered_at)
+                    if (state.data.clothes.isNotEmpty()) {
+
+                        HorizontalListSection(
+                            title = "Clothes",
+                            items = state.data.clothes,
+                            content = { clothes ->
+                                DetachedItem(
+                                    imageUrl = BASE_URL + clothes.cloth_pic,
+                                    primaryText = clothes.type,
+                                    secondaryText = clothes.color
+                                )
+                            }
                         )
                     }
-                    Spacer(modifier = Modifier.height(16.dp))
+
+                    if (state.data.launderers.isNotEmpty()) {
+                        HorizontalListSection(
+                            title = "Launderers",
+                            items = state.data.launderers,
+                            content = { launderer ->
+                                DetachedItem(
+                                    imageUrl = BASE_URL + launderer.launderer_pic,
+                                    primaryText = launderer.name.replace("laundry", "", true),
+                                    secondaryText = launderer.address.split(" ").first()
+                                        .replace(",", "")
+                                )
+                            }
+                        )
+                    }
+
+                    if (state.data.laundries.isNotEmpty()) {
+
+                        HorizontalListSection(
+                            title = "Laundries",
+                            items = state.data.laundries
+                        ) {
+                            BackgroundedItem(
+                                imageUrl = BASE_URL + it.launderer.launderer_pic,
+                                primaryText = it.launderer.name.replace("laundry", "", true),
+                                secondaryText = dateFormatterDMY(it.laundered_at)
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(16.dp))
+                    }
                 }
             }
         }

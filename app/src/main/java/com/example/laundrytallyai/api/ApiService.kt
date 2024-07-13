@@ -9,6 +9,7 @@ import com.example.laundrytallyai.api.dataschemes.RegisterRequest
 import okhttp3.ResponseBody
 import retrofit2.Response
 import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.POST
@@ -26,6 +27,12 @@ interface ApiService {
     // clothes
     @GET("/clothes")
     suspend fun getClothesData(@Header("Authorization") token: String): Response<List<ClothesData>>
+
+    @DELETE("/clothes")
+    suspend fun deleteClothesData(
+        @Header("Authorization") token: String,
+        @Query("id") id: Int
+    ): Response<String>
 
     // launderer
     @GET("/launderer")

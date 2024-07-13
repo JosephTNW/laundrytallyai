@@ -61,11 +61,7 @@ class AuthViewModel @Inject constructor(
                     )
                 )
                 if (response.isSuccessful) {
-                    val body = response.body()?.string() ?: ""
-                    _authState.value = DataState.Success(body)
-
-                    val jsonObject = JSONObject(body)
-                    saveToken(jsonObject.getString("token"))
+                    _authState.value = DataState.Success("Successfully registered")
                 } else {
                     _authState.value = DataState.Error(parseError(response)["code"] ?: "Unknown error")
                 }
