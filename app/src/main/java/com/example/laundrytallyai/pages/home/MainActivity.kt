@@ -33,12 +33,14 @@ import com.example.laundrytallyai.pages.auth.LoginScreen
 import com.example.laundrytallyai.pages.auth.RegisterScreen
 import com.example.laundrytallyai.pages.clothes.CameraServerScreen
 import com.example.laundrytallyai.pages.clothes.ClothesDetailScreen
+import com.example.laundrytallyai.pages.clothes.ClothesEditScreen
 import com.example.laundrytallyai.pages.clothes.ClothesScreen
 import com.example.laundrytallyai.pages.clothes.ClothesViewModel
 import com.example.laundrytallyai.pages.clothes.SelectMediaScreen
 import com.example.laundrytallyai.pages.launderers.LaundererDetailScreen
 import com.example.laundrytallyai.pages.launderers.LaundererScreen
 import com.example.laundrytallyai.pages.launderers.LaundererViewModel
+import com.example.laundrytallyai.pages.laundries.LaundryValidationScreen
 import com.example.laundrytallyai.pages.laundries.CreateLaundryScreen
 import com.example.laundrytallyai.pages.laundries.LaundryDetailScreen
 import com.example.laundrytallyai.pages.laundries.LaundryScreen
@@ -118,6 +120,11 @@ class MainActivity : ComponentActivity() {
                                 showBottomBar = true
                             }
 
+                            composable(Screen.ClothesEdit.route) {
+                                ClothesEditScreen(clothesViewModel, navController)
+                                showBottomBar = true
+                            }
+
                             animatedComposable(Screen.Laundry.route) {
                                 LaundryScreen(laundryViewModel, navController)
                                 showBottomBar = true
@@ -133,15 +140,32 @@ class MainActivity : ComponentActivity() {
                                 showBottomBar = true
                             }
 
+                            composable(Screen.LaundryValidation.route) {
+                                LaundryValidationScreen(
+                                    laundryViewModel,
+                                    navController
+                                )
+                                showBottomBar = true
+                            }
+
                             composable(
                                 Screen.CreateLaundry.route,
-                                arguments = listOf(navArgument("launderer_id") {
-                                    type = NavType.StringType
-                                })
+                                arguments = listOf(
+                                    navArgument("launderer_id") {
+                                        type = NavType.StringType
+                                    },
+                                    navArgument("launderer_name") {
+                                        type = NavType.StringType
+                                    }
+                                )
                             ) { backStackEntry ->
                                 CreateLaundryScreen(
+                                    laundryViewModel,
+                                    clothesViewModel,
                                     navController,
                                     laundererId = backStackEntry.arguments?.getString("launderer_id")
+                                        ?: "",
+                                    laundererName = backStackEntry.arguments?.getString("launderer_name")
                                         ?: ""
                                 )
                                 showBottomBar = true

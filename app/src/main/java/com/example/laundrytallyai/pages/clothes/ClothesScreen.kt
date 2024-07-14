@@ -23,7 +23,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -33,12 +32,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.laundrytallyai.api.RetrofitClient.BASE_URL
 import com.example.laundrytallyai.api.dataschemes.ClothesData
 import com.example.laundrytallyai.api.datastates.ClothesDataState
-import com.example.laundrytallyai.api.datastates.ModifyClothesState
+import com.example.laundrytallyai.api.datastates.ModifyDataState
 import com.example.laundrytallyai.components.BackgroundedItem
 import com.example.laundrytallyai.components.PageTitle
 import com.example.laundrytallyai.navigation.Screen
@@ -66,22 +64,22 @@ fun ClothesScreen(
 
     LaunchedEffect(modifyState) {
         when (modifyState) {
-            is ModifyClothesState.Success -> {
+            is ModifyDataState.Success -> {
                 if (selectedClothes != null) {
                     Toast.makeText(
                         context,
-                        (modifyState as ModifyClothesState.Success).message,
+                        (modifyState as ModifyDataState.Success).message,
                         Toast.LENGTH_SHORT
                     ).show()
                     selectedClothes = null
                 }
             }
 
-            is ModifyClothesState.Error -> {
+            is ModifyDataState.Error -> {
                 Toast.makeText(
                     context,
-                    "${(modifyState as ModifyClothesState.Error).code} " +
-                            ": ${(modifyState as ModifyClothesState.Error).error}",
+                    "${(modifyState as ModifyDataState.Error).code} " +
+                            ": ${(modifyState as ModifyDataState.Error).error}",
                     Toast.LENGTH_SHORT
                 ).show()
             }
@@ -120,10 +118,12 @@ fun ClothesScreen(
                                     selectedClothes = clothes
                                     showDialog = true
                                 },
-                                onUpdate = {}
+                                onUpdate = {
+                                    viewModel.setSelectedClothes(clothes)
+                                    navController.navigate(Screen.ClothesEdit.route)
+                                }
                             )
                         }
-
                     }
                 }
 

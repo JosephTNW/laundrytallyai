@@ -4,7 +4,6 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
 import android.os.Build
 import android.widget.Toast
 import androidx.annotation.RequiresApi
@@ -51,13 +50,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.content.FileProvider
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.laundrytallyai.api.RetrofitClient.BASE_URL
@@ -65,19 +62,9 @@ import com.example.laundrytallyai.api.dataschemes.LaundryData
 import com.example.laundrytallyai.api.datastates.LaundryDataState
 import com.example.laundrytallyai.components.PageTitle
 import com.example.laundrytallyai.navigation.Screen
-import com.example.laundrytallyai.ui.theme.Purple40
 import com.example.laundrytallyai.utils.RotatingArcLoadingAnimation
 import com.example.laundrytallyai.utils.addDaysToFormattedDate
 import com.example.laundrytallyai.utils.dateFormatterDMY
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import java.io.File
-import java.io.FileOutputStream
-import java.io.IOException
 
 @RequiresApi(Build.VERSION_CODES.P)
 @Composable
@@ -116,7 +103,8 @@ fun LaundryScreen(
                                 },
                                 laundryData = item,
                                 onValidateButtonClick = {
-
+                                    viewModel.setSelectedLaundry(item)
+                                    navController.navigate(Screen.LaundryValidation.route)
                                 },
                                 onSendButtonClick = {
                                     selectedLaundry = item
@@ -199,27 +187,18 @@ fun LaundryScreen(
                 dismissButton = {
                     Button(
                         onClick = {
-                            // send selectedLaundry.bill_pic and generated text with Intent to other applications that accept text + image (whatsapp)
-                            // Send the image and text to other applications
-                            selectedLaundry?.let { selectedLaundry ->
-                                viewModel.downloadImage(context, BASE_URL + selectedLaundry.bill_pic) { fileUri ->
-                                    val shareIntent = Intent().apply {
-                                        action = Intent.ACTION_SEND
-                                        type = "image/*"
-                                        putExtra(Intent.EXTRA_TEXT, generatedText)
-                                        putExtra(Intent.EXTRA_STREAM, fileUri)
-                                        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                                    }
-
-                                    context.startActivity(
-                                        Intent.createChooser(
-                                            shareIntent,
-                                            "Share message and proof using"
-                                        )
-                                    )
-                                }
+                            val shareIntent = Intent().apply {
+                                action = Intent.ACTION_SEND
+                                type = "text/plain"  // Change the MIME type to text/plain
+                                putExtra(Intent.EXTRA_TEXT, generatedText)
                             }
-                            showDialog = false
+
+                            context.startActivity(
+                                Intent.createChooser(
+                                    shareIntent,
+                                    "Share message using"
+                                )
+                            )
                         }
                     ) {
                         Text("Share")
@@ -272,10 +251,9 @@ fun LaundryItemCard(
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Column(
-                        modifier = Modifier.weight(1f)
                     ) {
                         Text(
                             text = laundryData.launderer.name.replace(
@@ -292,28 +270,31 @@ fun LaundryItemCard(
                             style = MaterialTheme.typography.bodySmall
                         )
                     }
-                    Row(
-                        modifier = Modifier.weight(.7f),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .background(MaterialTheme.colorScheme.primary, CircleShape)
-                                .padding(6.dp)
-                                .clickable(
-                                    interactionSource = remember { MutableInteractionSource() },
-                                    indication = rememberRipple(bounded = false, radius = 14.dp),
-                                    onClick = onSendButtonClick
+                    Row{
+                        if (laundryData.status == "pending") {
+                            Box(
+                                modifier = Modifier
+                                    .background(MaterialTheme.colorScheme.primary, CircleShape)
+                                    .padding(6.dp)
+                                    .clickable(
+                                        interactionSource = remember { MutableInteractionSource() },
+                                        indication = rememberRipple(
+                                            bounded = false,
+                                            radius = 14.dp
+                                        ),
+                                        onClick = onSendButtonClick
+                                    )
+                                    .clip(CircleShape)
+                            ) {
+                                Icon(
+                                    modifier = Modifier.size(18.dp),
+                                    imageVector = Icons.Default.Send,
+                                    contentDescription = "Send",
+                                    tint = MaterialTheme.colorScheme.onPrimary
                                 )
-                                .clip(CircleShape)
-                        ) {
-                            Icon(
-                                modifier = Modifier.size(18.dp),
-                                imageVector = Icons.Default.Send,
-                                contentDescription = "Send",
-                                tint = MaterialTheme.colorScheme.onPrimary
-                            )
+                            }
                         }
+                        Spacer(modifier = Modifier.width(8.dp))
                         Box(
                             modifier = Modifier
                                 .background(Color.LightGray, RoundedCornerShape(10.dp))
@@ -363,15 +344,19 @@ fun LaundryItemCard(
                             }
                         }
                     }
-                    Button(
-                        modifier = Modifier,
-                        onClick = onValidateButtonClick,
-                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
-                    ) {
-                        Text(
-                            text = "Validate",
-                            fontSize = MaterialTheme.typography.bodyMedium.fontSize,
-                        )
+                    if (laundryData.status != "finish") {
+                        Button(
+                            modifier = Modifier,
+                            onClick = onValidateButtonClick,
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.primary
+                            )
+                        ) {
+                            Text(
+                                text = "Validate",
+                                fontSize = MaterialTheme.typography.bodyMedium.fontSize,
+                            )
+                        }
                     }
                 }
             }

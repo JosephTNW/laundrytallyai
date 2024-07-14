@@ -64,7 +64,7 @@ fun LaundererDetailScreen(viewModel: LaundererViewModel, navController: NavContr
                     title = data.name,
                     onBackClick = { navController.popBackStack() },
                     rightLabelText = "Laundry",
-                    onRightLabelClick = { navController.navigate("create-laundry/${data.id}") })
+                    onRightLabelClick = { navController.navigate("create-laundry/${data.id}/${data.name}") })
             }
 
             // Main Content
@@ -112,7 +112,11 @@ fun LaundererDetailScreen(viewModel: LaundererViewModel, navController: NavContr
 @Composable
 fun InfoRow(section: String, value: String) {
     Row {
-        Text("$section -", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
+        Text(
+            "$section -",
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.Bold
+        )
         Text(value, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
     }
 }

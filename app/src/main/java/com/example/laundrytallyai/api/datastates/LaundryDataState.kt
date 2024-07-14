@@ -1,6 +1,5 @@
 package com.example.laundrytallyai.api.datastates
 
-import com.example.laundrytallyai.api.dataschemes.LaundererData
 import com.example.laundrytallyai.api.dataschemes.LaundryData
 
 sealed class LaundryDataState {

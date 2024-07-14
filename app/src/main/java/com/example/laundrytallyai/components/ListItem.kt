@@ -1,7 +1,6 @@
 package com.example.laundrytallyai.components
 
 import android.util.Log
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,6 +19,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.Card
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -33,7 +33,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
-import com.example.laundrytallyai.api.dataschemes.LaundererData
 
 @Composable
 fun BackgroundedItem(
@@ -42,7 +41,9 @@ fun BackgroundedItem(
     primaryText: String,
     secondaryText: String,
     onDelete: (() -> Unit)? = null,
-    onUpdate: (() -> Unit)? = null
+    onUpdate: (() -> Unit)? = null,
+    onChecked: ((Boolean) -> Unit)? = null,
+    checked: Boolean = false
 ) {
     Column(
         modifier = Modifier.padding(4.dp),
@@ -69,54 +70,80 @@ fun BackgroundedItem(
                     modifier = Modifier.fillMaxSize()
                 )
             }
-            Column {
-                Text(
-                    modifier = Modifier.padding(start = 8.dp),
-                    text = primaryText,
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary
+            if (onChecked != null) {
+                Row (
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
                 )
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    Text(
-                        modifier = Modifier.padding(start = 8.dp),
-                        text = secondaryText,
-                        style = MaterialTheme.typography.bodySmall
+                {
+                    Column {
+                        Text(
+                            modifier = Modifier.padding(start = 8.dp),
+                            text = primaryText,
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Text(
+                            modifier = Modifier.padding(start = 8.dp),
+                            text = secondaryText,
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
+                    Checkbox(
+                        checked = checked,
+                        onCheckedChange = onChecked
                     )
                 }
-                if (onDelete != null && onUpdate != null) {
-
+            } else {
+                Column {
+                    Text(
+                        modifier = Modifier.padding(start = 8.dp),
+                        text = primaryText,
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceEvenly,
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
                     ) {
-                        IconButton(
-                            onClick = onDelete,
-                        ) {
-                            Icon(
-                                imageVector = Icons.Filled.Delete,
-                                contentDescription = "Delete Clothes",
-                                tint = MaterialTheme.colorScheme.error
-                                )
-                        }
-                        IconButton(
-                            onClick = onUpdate,
-                            ) {
-                            Icon(
-                                imageVector = Icons.Filled.Edit,
-                                contentDescription = "Edit Clothes",
-                                tint = MaterialTheme.colorScheme.primary
-                                )
-                        }
+                        Text(
+                            modifier = Modifier.padding(start = 8.dp),
+                            text = secondaryText,
+                            style = MaterialTheme.typography.bodySmall
+                        )
                     }
-                } else {
-                    Spacer(modifier = Modifier.height(8.dp))
+                    if (onDelete != null && onUpdate != null) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceEvenly,
+                        ) {
+                            IconButton(
+                                onClick = onDelete,
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Filled.Delete,
+                                    contentDescription = "Delete Clothes",
+                                    tint = MaterialTheme.colorScheme.error
+                                )
+                            }
+                            IconButton(
+                                onClick = onUpdate,
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Filled.Edit,
+                                    contentDescription = "Edit Clothes",
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                        }
+                    } else {
+
+                        Spacer(modifier = Modifier.height(8.dp))
+                    }
                 }
             }
-
         }
     }
 }

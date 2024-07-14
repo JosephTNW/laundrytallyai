@@ -3,30 +3,20 @@ package com.example.laundrytallyai.pages.laundries
 import android.app.Application
 import android.content.Context
 import android.content.SharedPreferences
-import android.net.Uri
-import android.os.Build
-import androidx.annotation.RequiresApi
-import androidx.core.content.FileProvider
+import android.graphics.Bitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.laundrytallyai.api.RetrofitClient
-import com.example.laundrytallyai.api.dataschemes.ClothesData
 import com.example.laundrytallyai.api.dataschemes.LaundryData
+import com.example.laundrytallyai.api.dataschemes.LaundryValData
 import com.example.laundrytallyai.api.datastates.LaundryDataState
+import com.example.laundrytallyai.api.datastates.ModifyDataState
 import com.example.laundrytallyai.api.parseError
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import java.io.File
-import java.io.FileOutputStream
-import java.io.IOException
 import javax.inject.Inject
 
 @HiltViewModel
@@ -35,7 +25,8 @@ class LaundryViewModel @Inject constructor(
 ) : ViewModel() {
     private val _dataState = MutableStateFlow<LaundryDataState>(LaundryDataState.Loading)
     val dataState: StateFlow<LaundryDataState> = _dataState
-    private val sharedPreferences: SharedPreferences = application.getSharedPreferences("auth", Context.MODE_PRIVATE)
+    private val sharedPreferences: SharedPreferences =
+        application.getSharedPreferences("auth", Context.MODE_PRIVATE)
 
     fun fetchData() {
         viewModelScope.launch {
@@ -47,13 +38,16 @@ class LaundryViewModel @Inject constructor(
                 }
                 val response = RetrofitClient.instance.getLaundryData(token)
                 if (response.isSuccessful) {
-                    val laundryData = response.body() ?: throw(Exception("No data found"))
+                    val laundryData = response.body() ?: throw (Exception("No data found"))
                     _dataState.value = LaundryDataState.Success(laundryData)
                 } else {
-                    _dataState.value = LaundryDataState.Error("500", parseError(response)["error"] ?: "Unknown error")
+                    _dataState.value = LaundryDataState.Error(
+                        "500",
+                        parseError(response)["error"] ?: "Unknown error"
+                    )
                 }
             } catch (e: Exception) {
-                _dataState.value = LaundryDataState.Error("407",e.message ?: "Unknown error")
+                _dataState.value = LaundryDataState.Error("407", e.message ?: "Unknown error")
             }
         }
     }
@@ -77,31 +71,71 @@ class LaundryViewModel @Inject constructor(
         sharedPreferences.getString("username", null)
     }
 
-    @RequiresApi(Build.VERSION_CODES.P)
-    fun downloadImage(context: Context, imageUrl: String, onDownloaded: (Uri) -> Unit) {
-        val client = OkHttpClient()
-        val request = Request.Builder().url(imageUrl).build()
+    private val _validationState = MutableStateFlow<ModifyDataState>(ModifyDataState.Idle)
+    val validationState: StateFlow<ModifyDataState> = _validationState.asStateFlow()
 
-        CoroutineScope(Dispatchers.IO).launch {
+    fun validateLaundry(laundryId: Int, clothesIds: IntArray) {
+        viewModelScope.launch {
+            _validationState.value = ModifyDataState.Loading
             try {
-                val response = client.newCall(request).execute()
-                if (!response.isSuccessful) throw IOException("Unexpected code $response")
-
-                val file = File(context.cacheDir, "shared_image.jpg")
-                val fos = FileOutputStream(file)
-                fos.use { fos ->
-                    response.body?.byteStream()?.copyTo(fos)
+                val token = sharedPreferences.getString("token", null) ?: run {
+                    _validationState.value = ModifyDataState.Error("401", "No auth token found")
+                    return@launch
                 }
-                val fileUri = FileProvider.getUriForFile(
-                    context,
-                    "${context.packageName}.fileprovider",
-                    file
-                )
-                withContext(Dispatchers.Main) {
-                    onDownloaded(fileUri)
+                val response =
+                    RetrofitClient.instance.validateLaundryData(
+                        token,
+                        LaundryValData(clothesIds, laundryId)
+                    )
+                if (response.isSuccessful) {
+                    _validationState.value =
+                        ModifyDataState.Success("Laundry validated successfully")
+                } else {
+                    _validationState.value = ModifyDataState.Error(
+                        "500",
+                        parseError(response)["error"] ?: "Unknown error"
+                    )
                 }
             } catch (e: Exception) {
-                e.printStackTrace()
+                _validationState.value = ModifyDataState.Error("407", e.message ?: "Unknown error")
+            }
+        }
+    }
+
+    fun setValidationState(state: ModifyDataState) {
+        _validationState.value = state
+    }
+
+    fun createLaundry(
+        laundererId: Int,
+        clothesIds: IntArray,
+        laundryDays: Int,
+        billPic: Bitmap
+    ) {
+        viewModelScope.launch {
+            _validationState.value = ModifyDataState.Loading
+            try {
+                val token = sharedPreferences.getString("token", null) ?: run {
+                    _validationState.value = ModifyDataState.Error("401", "No auth token found")
+                    return@launch
+                }
+                val response = RetrofitClient.instance.createLaundryData(
+                    token,
+                    clothesIds,
+                    laundererId,
+                    laundryDays,
+                    billPic
+                )
+                if (response.isSuccessful) {
+                    val laundryData = response.body() ?: throw (Exception("No data found"))
+                } else {
+                    _validationState.value = ModifyDataState.Error(
+                        "500",
+                        parseError(response)["error"] ?: "Unknown error"
+                    )
+                }
+            } catch (e: Exception) {
+                _validationState.value = ModifyDataState.Error("407", e.message ?: "Unknown error")
             }
         }
     }
