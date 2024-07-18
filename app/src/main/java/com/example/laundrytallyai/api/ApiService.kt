@@ -1,6 +1,5 @@
 package com.example.laundrytallyai.api
 
-import android.graphics.Bitmap
 import com.example.laundrytallyai.api.dataschemes.ClothesData
 import com.example.laundrytallyai.api.dataschemes.HomeData
 import com.example.laundrytallyai.api.dataschemes.LaundererData
@@ -51,6 +50,21 @@ interface ApiService {
         @Part cloth_pic: MultipartBody.Part?
     ): Response<ResponseBody>
 
+    @Multipart
+    @POST("/type")
+    suspend fun predictClothingType(
+        @Header("Authorization") token: String,
+        @Part cloth_pics: List<MultipartBody.Part>
+    ): Response<ResponseBody>
+
+    @Multipart
+    @POST("/clothes")
+    suspend fun addClothes(
+        @Header("Authorization") token: String,
+        @Part clothes: List<MultipartBody.Part>
+    ): Response<ResponseBody>
+
+
     // launderer
     @GET("/launderer")
     suspend fun getLaundererData(@Header("Authorization") token: String): Response<List<LaundererData>>
@@ -71,13 +85,14 @@ interface ApiService {
         @Body body: LaundryValData
     ): Response<ResponseBody>
 
+    @Multipart
     @POST("/laundry")
     suspend fun createLaundryData(
         @Header("Authorization") token: String,
-        @Body clothes_ids: IntArray,
-        @Body launderer_id: Int,
-        @Body laundry_days: Int,
-        @Body bill_pic: Bitmap
+        @Part("clothes_ids") clothes_ids: RequestBody,
+        @Part("launderer_id") launderer_id: RequestBody,
+        @Part("laundry_days") laundry_days: RequestBody,
+        @Part bill_pic: MultipartBody.Part?
     ): Response<ResponseBody>
 
     // auth

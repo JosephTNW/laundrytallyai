@@ -129,7 +129,7 @@ fun ClothesScreen(
 
                 FloatingActionButton(
                     onClick = {
-                        navController.navigate("select-media")
+                        navController.navigate(Screen.SelectMedia.route)
                     },
                     modifier = Modifier
                         .zIndex(1f)

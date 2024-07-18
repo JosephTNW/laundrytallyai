@@ -283,12 +283,12 @@ fun CameraServerPreview(
     )
 }
 
-fun createTempFile(context: Context): File {
-    val storageDir: File = context.getExternalFilesDir(Environment.DIRECTORY_PICTURES)
-        ?: throw IOException("Unable to access storage")
-    return File.createTempFile(
-        "JPEG_${System.currentTimeMillis()}_",
-        ".jpg",
-        storageDir
-    )
-}
+//fun createTempFile(context: Context): File {
+//    val storageDir: File = context.getExternalFilesDir(Environment.DIRECTORY_PICTURES)
+//        ?: throw IOException("Unable to access storage")
+//    return File.createTempFile(
+//        "JPEG_${System.currentTimeMillis()}_",
+//        ".jpg",
+//        storageDir
+//    )
+//}

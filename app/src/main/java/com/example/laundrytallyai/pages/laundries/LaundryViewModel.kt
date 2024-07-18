@@ -4,9 +4,11 @@ import android.app.Application
 import android.content.Context
 import android.content.SharedPreferences
 import android.graphics.Bitmap
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.laundrytallyai.api.RetrofitClient
+import com.example.laundrytallyai.api.dataschemes.ClothesData
 import com.example.laundrytallyai.api.dataschemes.LaundryData
 import com.example.laundrytallyai.api.dataschemes.LaundryValData
 import com.example.laundrytallyai.api.datastates.LaundryDataState
@@ -17,6 +19,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.asRequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
+import java.io.File
 import javax.inject.Inject
 
 @HiltViewModel
@@ -106,37 +113,64 @@ class LaundryViewModel @Inject constructor(
         _validationState.value = state
     }
 
+    private val _creationState = MutableStateFlow<ModifyDataState>(ModifyDataState.Idle)
+    val creationState: StateFlow<ModifyDataState> = _creationState.asStateFlow()
+
     fun createLaundry(
         laundererId: Int,
         clothesIds: IntArray,
         laundryDays: Int,
-        billPic: Bitmap
+        billPic: File?
     ) {
         viewModelScope.launch {
-            _validationState.value = ModifyDataState.Loading
+            _creationState.value = ModifyDataState.Loading
             try {
                 val token = sharedPreferences.getString("token", null) ?: run {
-                    _validationState.value = ModifyDataState.Error("401", "No auth token found")
+                    _creationState.value = ModifyDataState.Error("401", "No auth token found")
                     return@launch
                 }
+
+                val laundererIdPart =
+                    laundererId.toString().toRequestBody("text/plain".toMediaTypeOrNull())
+                val clothesIdsPart =
+                    clothesIds.joinToString(",").toRequestBody("text/plain".toMediaTypeOrNull())
+                val laundryDaysPart =
+                    laundryDays.toString().toRequestBody("text/plain".toMediaTypeOrNull())
+
+                Log.d("LaundryViewModel:", "clothesIdsPart: $clothesIdsPart")
+                Log.d("LaundryViewModel:", "clothesIdsJoin: ${clothesIds.joinToString(",")}")
+
+                val billPicPart = billPic?.let {
+                    MultipartBody.Part.createFormData(
+                        "bill_pic", it.name, it.asRequestBody("image/jpeg".toMediaTypeOrNull())
+                    )
+                }
+
                 val response = RetrofitClient.instance.createLaundryData(
-                    token,
-                    clothesIds,
-                    laundererId,
-                    laundryDays,
-                    billPic
+                    token = token,
+                    clothes_ids = clothesIdsPart,
+                    launderer_id = laundererIdPart,
+                    laundry_days = laundryDaysPart,
+                    bill_pic = billPicPart
                 )
                 if (response.isSuccessful) {
                     val laundryData = response.body() ?: throw (Exception("No data found"))
                 } else {
-                    _validationState.value = ModifyDataState.Error(
+                    _creationState.value = ModifyDataState.Error(
                         "500",
                         parseError(response)["error"] ?: "Unknown error"
                     )
                 }
             } catch (e: Exception) {
-                _validationState.value = ModifyDataState.Error("407", e.message ?: "Unknown error")
+                _creationState.value = ModifyDataState.Error("407", e.message ?: "Unknown error")
             }
         }
+    }
+
+    private val _selectedClothesState = MutableStateFlow<List<ClothesData?>>(emptyList())
+    val selectedClothesState: StateFlow<List<ClothesData?>> = _selectedClothesState.asStateFlow()
+
+    fun setSelectedClothes(clothesList: List<ClothesData?>) {
+        _selectedClothesState.value = clothesList
     }
 }

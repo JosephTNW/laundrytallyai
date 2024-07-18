@@ -91,7 +91,6 @@ fun ClothesEditScreen(
         )
     }
 
-
     val permissionsLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
             hasCameraPermission = permissions[Manifest.permission.CAMERA] ?: hasCameraPermission

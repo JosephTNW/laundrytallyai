@@ -2,6 +2,7 @@ package com.example.laundrytallyai.components
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -70,10 +71,12 @@ fun PageTitle(
             Spacer(modifier = Modifier.weight(1f))
             IconButton(
                 onClick = { onMiddleButtonClick() },
-                Modifier.background(
-                    color = MaterialTheme.colorScheme.primary,
-                    shape = CircleShape
-                ).size(28.dp),
+                Modifier
+                    .background(
+                        color = MaterialTheme.colorScheme.primary,
+                        shape = CircleShape
+                    )
+                    .size(28.dp),
             ) {
                 Icon(
                     modifier = Modifier.size(14.dp),
@@ -123,17 +126,25 @@ fun PageTitle(
 }
 
 @Composable
-fun SectionTitle(text: String) {
+fun SectionTitle(text: String, onClick: (() -> Unit)? = null) {
     Row(
-        modifier = Modifier.fillMaxWidth()
-            .padding(horizontal = 16.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp)
+            .clickable {
+                if (onClick != null) {
+                    onClick()
+                }
+            },
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Text(text)
 
-        Icon(
-            imageVector = Icons.Filled.Create,
-            contentDescription = "Edit Clothes"
-        )
+        if (onClick != null) {
+            Icon(
+                imageVector = Icons.Filled.Create,
+                contentDescription = "Edit Clothes"
+            )
+        }
     }
 }
